@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en-us" }}">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Santorini</title>
+	<meta name="description" content="">
+	<meta name="author" content="Samuel Foster">
+	<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+	<main id="container">
+		<section>
+			<li v-if="game.workerOne.length > 0">First Worker: {{ game.workerOne[0] }}, {{ game.workerOne[1] }}</li>
+			<li v-if="game.workerTwo.length > 0">Second Worker: {{ game.workerTwo[0] }}, {{ game.workerTwo[1] }}</li>
+			<li v-if="game.workerThree.length > 0">Third Worker: {{ game.workerThree[0] }}, {{ game.workerThree[1] }}</li>
+			<li v-if="game.workerFour.length > 0">Fourth Worker: {{ game.workerFour[0] }}, {{ game.workerFour[1] }}</li>
+		</section>
+		<section id="board">
+			<p v-for="row in board" style="line-height: 1; margin: 0">
+				<span v-for="col in row">					{{ col }} 
+				</span>
+			</p>
+		</section>
+		<p>{{ game.playerTurn == 0 ? "First player's turn." : "Second player's turn." }}</p>
+		<label>(Row, column)</label>
+		<input v-model="move">
+		<button v-on:click="playMove">Play Move</button>
+		<section class="game">
+			<ul>
+				<li v-for="move in game.moves">{{ move.notatedMove }}{{ move.build == -1 ? "" : ", " + move.build }}</li>
+			</ul>
+		</section>
+	</main>
+	<script src="game.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+	<script src="ui.js"></script>
+</body>
+</html>
