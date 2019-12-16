@@ -1,3 +1,14 @@
 #pieces {
 	position: absolute;
 }
+
+rect:hover {
+	fill: green;
+}
+
+rect:focus {
+	fill: green;
+}
+
+[v-cloak] > * { display:none !important; }
+[v-cloak]::before { content: ". . ."; }

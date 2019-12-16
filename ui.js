@@ -1,12 +1,3 @@
-
-document.createSvg = function(tagName) {
-    return this.createElementNS("http://www.w3.org/2000/svg", tagName);
-};
-    
-function createBoard(pixelsPerSide, colors) {
-        
-}
-
 const container = document.getElementById("board");
 
 function clickedBoard(cellNumber) {
@@ -28,15 +19,52 @@ var app = new Vue({
   },
   mounted: function () {
     this.board = this.game.board;
+    this.drawBoard(300, 300, 2, 2);
   },
   methods: {
-  	playMove: function() {
-      
-  		const dimensions = this.move.split(" ");
-  		const row = parseInt(dimensions[0]);
-  		const column = parseInt(dimensions[1]);
+    drawBoard: function(width, height, verticalGutter, horizontalGutter) {
+      var vue = this;
+      var draw = SVG().addTo('#board');
 
-      this.game.playPosition(row, column);
+      draw.rect(width, height).fill("wheat");
+      
+      cellWidth = (width - verticalGutter * 4) / 5;
+      cellHeight = (height - horizontalGutter * 4) / 5;
+      draw.size(width + 40, height + 40);
+
+      for(var i = 0; i < 5; i++) {
+        for(var j = 0; j < 5; j++) {
+          const x = j;
+          const y = (4 - i); 
+
+          var rect = draw.rect(cellWidth, cellHeight).move(cellWidth*x + verticalGutter*x, cellHeight*y + horizontalGutter*y).attr({ fill: 'darkgreen' })
+          rect.click(function() {
+            vue.playMove({row:(4 - y) , column:x });
+          });
+        }
+      }
+
+      draw.text("a").move(25, 300);
+      draw.text("b").move(85, 300);
+      draw.text("c").move(145, 300);
+      draw.text("d").move(205, 300);
+      draw.text("e").move(265, 300);
+
+
+      draw.text("1").move(300, 265);
+      draw.text("2").move(300, 205);
+      draw.text("3").move(300, 145);
+      draw.text("4").move(300, 85);
+      draw.text("5").move(300, 25);
+
+    },
+  	playMove: function(move) {
+      const row = move.row;
+      const column = move.column;
+      console.log(move);
+      this.game.playPosition(row, column).then(function() {
+        
+      });
 
       /*
   		const workerOne = this.workerOne;
@@ -78,6 +106,9 @@ var app = new Vue({
   			lastMove.build = getNotationWithPiece(piece, row, column);
   		}
       */
-  	}
+  	},
+    getNotation: function(row, column) {
+      return getNotation(row, column);
+    }
   }
 })

@@ -41,7 +41,7 @@ function newBoard() {
 }
 
 
-function playPosition(row, column) {
+async function playPosition(row, column) {
 	const playerTurn = this.playerTurn;
 	let w1 = playerTurn == 0 ? this.workerOne : this.workerThree;
 	let w2 = playerTurn == 0 ? this.workerTwo : this.workerFour;
@@ -260,5 +260,6 @@ function getNotation(row, column) {
 }
 
 function getBuildNotation(piece, row, column) {
+	if(piece == 1) return getNotation(row, column);
 	return piece + getNotation(row, column);
 }
