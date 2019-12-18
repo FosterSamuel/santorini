@@ -180,10 +180,10 @@ async function playPosition(row, column) {
 							this.workerFour[1] = column;	
 						}
 					}
-					const moveNotation = getNotation(row, column);
+					const moveNotation = getLevelNotation(attemptedLevel) + getNotation(row, column);
 					this.moves.push({
 						move: MOVING_WORKER,
-						notatedMove: (selectedWorker == 1 ? moveNotation.toUpperCase() : moveNotation),
+						notatedMove: (selectedWorker == 1 ? "M" + moveNotation : moveNotation),
 						build: -1,
 						row: row,
 						column: column
@@ -257,6 +257,11 @@ function moveOutsideBoard(row, column) {
 
 function getNotation(row, column) {
 	return ['a','b','c','d','e'][column] + [1, 2, 3, 4, 5][row];
+}
+
+function getLevelNotation(level) {
+	if(level < 0 || level > 3) return "";
+	return ['', 'f', 's', 't'][level];
 }
 
 function getBuildNotation(piece, row, column) {

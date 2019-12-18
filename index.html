@@ -16,7 +16,7 @@
 		<p>{{ game.playerTurn == 0 ? "First player's turn." : "Second player's turn." }}</p>
 		<section class="game">
 			<ul>
-				<li v-for="move in game.moves">{{ move.notatedMove }}{{ move.build == -1 ? "" : ", " + move.build }}</li>
+				<li v-for="move in game.moves">{{ move.notatedMove }}{{ move.build == -1 ? "" : "   " + move.build }}</li>
 			</ul>
 		</section>
 	</main>
