@@ -2,12 +2,12 @@
 	position: absolute;
 }
 
-rect:hover {
+.board-cell:hover, .board-cell:focus {
 	fill: green;
 }
 
-rect:focus {
-	fill: green;
+circle {
+	pointer-events: none;
 }
 
 [v-cloak] > * { display:none !important; }

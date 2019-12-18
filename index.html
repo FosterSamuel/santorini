@@ -11,12 +11,6 @@
 </head>
 <body>
 	<main id="container" v-cloak>
-		<section>
-			<li v-if="game.workerOne[0] > -1">P1 First  Worker: {{ getNotation(game.workerOne[0], game.workerOne[1]) }} </li>
-			<li v-if="game.workerTwo[0] > -1">P1 Second Worker: {{ getNotation(game.workerTwo[0], game.workerTwo[1]) }}</li>
-			<li v-if="game.workerThree[0] > -1">P2 First Worker: {{ getNotation(game.workerThree[0], game.workerThree[1]) }}</li>
-			<li v-if="game.workerFour[0] > -1">P2 Second Worker: {{ getNotation(game.workerFour[0], game.workerFour[1]) }} </li>
-		</section>
 		<section id="board">
 		</section>
 		<p>{{ game.playerTurn == 0 ? "First player's turn." : "Second player's turn." }}</p>

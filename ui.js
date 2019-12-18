@@ -7,63 +7,127 @@ function clickedBoard(cellNumber) {
 
 function getNotationWithPiece(piece, row, column) {
 	return piece + "" + getNotation(row, column);
-}
+} 
 
 var app = new Vue({
   el: '#container',
   data: {
     move: '',
     build: '',
+    draw: null,
+    p1: {
+      firstWorker: {
+        position: [-1, -1],
+        svg: null
+      },
+      secondWorker: {
+        position: [-1, -1],
+        svg: null
+      }
+    },
+    p2: {
+      firstWorker: {
+        position: [-1, -1],
+        svg: null
+      },
+      secondWorker: {
+        position: [-1, -1],
+        svg: null
+      }
+    },
     board: [],
+    boardSettings: {
+      width: 300,
+      height: 300,
+      cellWidth: 0,
+      cellHeight: 0,
+      verticalGutter: 2,
+      horizontalGutter: 2,
+      playerOneColor: "blue",
+      playerTwoColor: "orangered"
+    },
     game: startGame()
   },
   mounted: function () {
     this.board = this.game.board;
-    this.drawBoard(300, 300, 2, 2);
+    this.drawBoard();
+    this.drawNotation();
   },
   methods: {
-    drawBoard: function(width, height, verticalGutter, horizontalGutter) {
-      var vue = this;
-      var draw = SVG().addTo('#board');
+    drawBoard: function() {
+      this.draw = SVG().addTo('#board');
+      const width = this.boardSettings.width;
+      const height = this.boardSettings.height;
+      const verticalGutter = this.boardSettings.verticalGutter;
+      const horizontalGutter = this.boardSettings.horizontalGutter;
+      const playMove = this.playMove;
 
-      draw.rect(width, height).fill("wheat");
-      
-      cellWidth = (width - verticalGutter * 4) / 5;
-      cellHeight = (height - horizontalGutter * 4) / 5;
-      draw.size(width + 40, height + 40);
+      this.boardSettings.cellWidth = (width - verticalGutter * 4) / 5;
+      this.boardSettings.cellHeight = (height - horizontalGutter * 4) / 5;
+
+      this.draw.size(width + 40, height + 40);
+      this.draw.rect(width, height).fill("wheat");
 
       for(var i = 0; i < 5; i++) {
         for(var j = 0; j < 5; j++) {
           const x = j;
           const y = (4 - i); 
 
-          var rect = draw.rect(cellWidth, cellHeight).move(cellWidth*x + verticalGutter*x, cellHeight*y + horizontalGutter*y).attr({ fill: 'darkgreen' })
+          var rect = this.draw.rect(this.boardSettings.cellWidth, this.boardSettings.cellHeight)
+                              .move(this.boardSettings.cellWidth*x + this.boardSettings.verticalGutter*x, 
+                                    this.boardSettings.cellHeight*y + this.boardSettings.horizontalGutter*y)
+                              .attr({ fill: 'darkgreen' })
+          rect.attr({ class: "board-cell" });
           rect.click(function() {
-            vue.playMove({row:(4 - y) , column:x });
+            playMove({row:(4 - y) , column:x });
           });
         }
       }
+    },
+    drawNotation: function() {
+      this.draw.text("a").move(25, 300);
+      this.draw.text("b").move(85, 300);
+      this.draw.text("c").move(145, 300);
+      this.draw.text("d").move(205, 300);
+      this.draw.text("e").move(265, 300);
 
-      draw.text("a").move(25, 300);
-      draw.text("b").move(85, 300);
-      draw.text("c").move(145, 300);
-      draw.text("d").move(205, 300);
-      draw.text("e").move(265, 300);
+      this.draw.text("1").move(300, 265);
+      this.draw.text("2").move(300, 205);
+      this.draw.text("3").move(300, 145);
+      this.draw.text("4").move(300, 85);
+      this.draw.text("5").move(300, 25);
+    },
+    drawWorkers: function() {
+      this.renderWorkerIfMoved(this.p1.firstWorker, this.game.workerOne, this.boardSettings.playerOneColor);
+      this.renderWorkerIfMoved(this.p1.secondWorker, this.game.workerTwo, this.boardSettings.playerOneColor);
+      this.renderWorkerIfMoved(this.p2.firstWorker, this.game.workerThree, this.boardSettings.playerTwoColor);
+      this.renderWorkerIfMoved(this.p2.secondWorker, this.game.workerFour, this.boardSettings.playerTwoColor);
+    },
+    renderWorkerIfMoved: function(worker, gameWorker, color) {
+      if(worker.position[0] != gameWorker[0] || worker.position[1] != gameWorker[1]) {
+        worker.position[0] = gameWorker[0];
+        worker.position[1] = gameWorker[1];
 
+        if(worker.svg === null ) {
+          worker.svg = this.draw.circle(this.boardSettings.cellWidth - 10);
+          worker.svg.fill(color);
+        }
 
-      draw.text("1").move(300, 265);
-      draw.text("2").move(300, 205);
-      draw.text("3").move(300, 145);
-      draw.text("4").move(300, 85);
-      draw.text("5").move(300, 25);
-
+        this.moveSVGToBoardPosition(worker.svg, worker.position[0], worker.position[1]);
+      }
+    },
+    moveSVGToBoardPosition: function(svg, row, column) {
+      svg.cx(column*this.boardSettings.cellWidth + column*this.boardSettings.verticalGutter + this.boardSettings.cellWidth/2)
+         .cy((4-row)*this.boardSettings.cellHeight + (4-row)*this.boardSettings.horizontalGutter + this.boardSettings.cellHeight/2);
     },
   	playMove: function(move) {
       const row = move.row;
       const column = move.column;
+      const v = this;
       console.log(move);
       this.game.playPosition(row, column).then(function() {
-        
+        console.log(v.game);
+        v.drawWorkers();
       });
 
       /*
