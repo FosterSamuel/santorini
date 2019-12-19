@@ -19,17 +19,25 @@ function startGame() {
 		state: SETTING_FIRST_WORKER,
 		lastBuild: null,
 		lastMove: null,
-		nextMove: "",
+		legal: {
+			workerOne: [],
+			workerTwo: [],
+			workerThree: [],
+			workerFour: []
+		},
+		legalMoves: [],
+		listLegalMoves: listLegalMoves,
 		moves: [],
+		nextMove: "",
 		playNotation: null,
 		playPosition: playPosition,
 		playerTurn: 0,
 		selectedWorker: -1,
+		winningPlayer: -1,
 		workerOne: [-1, -1],
 		workerTwo: [-1, -1],
 		workerThree: [-1, -1],
-		workerFour: [-1, -1],
-		winningPlayer: -1
+		workerFour: [-1, -1]
 	};
 
 	return GAME;
@@ -43,6 +51,93 @@ function newBoard() {
 		    [0, 0, 0, 0, 0]]; // Row 0
 }
 
+async function listLegalMoves() {
+	this.legalMoves = [];
+
+	const findLegalMoves = determineLegalMoves.bind(this);
+
+	this.legal.workerOne = findLegalMoves(this.workerOne);
+	this.legal.workerTwo = findLegalMoves(this.workerTwo);
+	this.legal.workerThree = findLegalMoves(this.workerThree);
+	this.legal.workerFour = findLegalMoves(this.workerFour);
+
+	if(this.playerTurn == 0) {
+		if(this.selectedWorker == 0) {
+			this.legalMoves = this.legal.workerOne;
+		} else {
+			this.legalMoves = this.legal.workerTwo;
+		}
+	} else {
+		if(this.selectedWorker == 0) {
+			this.legalMoves = this.legal.workerThree;
+		} else {
+			this.legalMoves = this.legal.workerFour;
+		}
+	}
+}
+
+function determineLegalMoves(worker) {
+	const moves = [];
+	const row = worker[0];
+	const column = worker[1];
+	const workerLevel = this.board[4 - row][column];
+
+	const isLegal = isMoveLegal.bind(this);
+	
+	// Check up
+	if(isLegal(worker, workerLevel, row + 1, column)) {
+		moves.push([row + 1, column]);
+	}
+
+	// Check diag right up
+	if(isLegal(worker, workerLevel, row + 1, column + 1)) {
+		moves.push([row + 1, column + 1]);
+	}
+
+	// Check right
+	if(isLegal(worker, workerLevel, row, column + 1)) {
+		moves.push([row, column + 1]);
+	}
+	// Check diag right down
+	if(isLegal(worker, workerLevel, row - 1, column + 1)) {
+		moves.push([row - 1, column + 1]);
+	}
+	// Check down
+	if(isLegal(worker, workerLevel, row - 1, column)) {
+		moves.push([row - 1, column]);
+	}
+	// Check diag left down
+	if(isLegal(worker, workerLevel, row - 1, column - 1)) {
+		moves.push([row - 1, column - 1]);
+	}
+	// Check left
+	if(isLegal(worker, workerLevel, row, column - 1)) {
+		moves.push([row, column - 1]);
+	}
+	// Check diag left up
+	if(isLegal(worker, workerLevel, row + 1, column - 1)) {
+		moves.push([row + 1, column - 1]);
+	}
+
+	return moves;
+}
+
+function isMoveLegal(worker, level, row, column) {
+	const workerRow = worker[0];
+	const workerColumn = worker[1];
+
+	if(moveIsOutsideBoard(row, column)) return 0;
+	
+	if(samePosition(row, column, this.workerOne)) return 0;
+	if(samePosition(row, column, this.workerTwo)) return 0;
+	if(samePosition(row, column, this.workerThree)) return 0;
+	if(samePosition(row, column, this.workerFour)) return 0;
+
+	if(this.board[4 - row][column] > level + 1) return 0;
+	
+	return 1;
+}
+
 
 async function playPosition(row, column) {
 	const playerTurn = this.playerTurn;
@@ -53,7 +148,7 @@ async function playPosition(row, column) {
 	const selectedWorker = this.selectedWorker;
 	const selectedW = this.selectedWorker == 1 ? w2 : w1;
 
-	if(moveOutsideBoard(row, column)) {
+	if(moveIsOutsideBoard(row, column)) {
 		console.log("illegal move");
 		// TODO: replace with error message
 		return false;
@@ -145,10 +240,12 @@ async function playPosition(row, column) {
 			if(samePosition(row, column, w1)) {
 				console.log(this.selectedWorker + " selected");
 				this.selectedWorker = 0;
+				this.listLegalMoves();
 				break; // TODO: replace with error message
 			} else if (samePosition(row, column, w2)) {
 				console.log(this.selectedWorker + " selected");
 				this.selectedWorker = 1;
+				this.listLegalMoves();
 				break; // TODO: replace with error message
 			} else if (samePosition(row, column, w3)) {
 				console.log("Can't move on top of third worker");
@@ -263,7 +360,7 @@ function withinReach(row, column, worker) {
 	return rowDiff < 2 && columnDiff < 2;
 }
 
-function moveOutsideBoard(row, column) {
+function moveIsOutsideBoard(row, column) {
 	return (row < 0 || row > 4) || (column < 0 || column > 4);
 }
 

@@ -15,6 +15,7 @@ var app = new Vue({
     move: '',
     build: '',
     draw: null,
+    legal: {},
     p1: {
       firstWorker: {
         position: [-1, -1],
@@ -50,12 +51,12 @@ var app = new Vue({
     game: startGame()
   },
   mounted: function () {
-    this.board = this.game.board;
     this.drawBoard();
     this.drawNotation();
   },
   methods: {
     drawBoard: function() {
+      const v = this;
       this.draw = SVG().addTo('#board');
 
       const width = this.boardSettings.width;
@@ -79,6 +80,7 @@ var app = new Vue({
                               .move(this.boardSettings.cellWidth*x + this.boardSettings.verticalGutter*x, 
                                     this.boardSettings.cellHeight*y + this.boardSettings.horizontalGutter*y)
                               .attr({ fill: 'darkgreen' })
+          this.board[y][x] = rect;
           rect.attr({ class: "board-cell" });
           rect.click(function() {
             playMove({row:(4 - y) , column:x });
@@ -112,13 +114,14 @@ var app = new Vue({
       const level = this.game.board[4 - row][column];
       console.log(level);
       if(level == 1) {
+        building.size(this.boardSettings.cellWidth - 10, this.boardSettings.cellHeight - 10);
         building.fill("purple");
       } else if (level == 2) {
         building.size(this.boardSettings.cellWidth - 20, this.boardSettings.cellHeight - 20);
         building.fill("gold");
       } else if (level == 3) {
         building.size(this.boardSettings.cellWidth - 40, this.boardSettings.cellHeight - 40);
-        building.fill("wheat");
+        building.fill("blue");
       }
       this.moveSVGToBoardPosition(building, row, column);
     },
@@ -129,7 +132,7 @@ var app = new Vue({
         worker.position[1] = gameWorker[1];
 
         if(worker.svg === null ) {
-          worker.svg = this.draw.circle(this.boardSettings.cellWidth - 10);
+          worker.svg = this.draw.circle(this.boardSettings.cellWidth - 25);
           worker.svg.fill(color);
         }
 
@@ -157,7 +160,16 @@ var app = new Vue({
           }
           if(v.game.lastMove != null) {
             v.drawWorkers();
+            v.clearBoard();
             v.game.lastMove = null;
+            v.game.legalMoves = [];
+          }
+
+          if(v.game.state == MOVING_WORKER) {
+            v.game.listLegalMoves();
+            v.legal = v.game.legal;
+            v.clearBoard();
+            v.highlightLegalMoves();
           }
 
           if(v.game.state == WON) {
@@ -187,7 +199,6 @@ var app = new Vue({
   		const column = parseInt(dimensions[1]);
 
       this.game.playPosition(row, column);
-      this.board = this.game.board;
       /* 
 
   		const lastMove = this.moves[this.moves.length-1];
@@ -207,6 +218,21 @@ var app = new Vue({
   		}
       */
   	},
+    clearBoard: function() {
+      for(let row = 0; row < 5; row++) {
+        for(let column = 0; column < 5; column++) {
+          this.board[row][column].attr({class:"board-cell"});
+        }
+      }
+    },
+    highlightLegalMoves: function() {
+      for(const positionPair of this.game.legalMoves) {
+        this.board[4 - positionPair[0]][positionPair[1]]
+           .attr({class: "board-cell highlighted"});
+      }
+
+      this.game.legalMoves = [];
+    },
     getNotation: function(row, column) {
       return getNotation(row, column);
     }
