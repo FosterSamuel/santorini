@@ -17,6 +17,8 @@ function startGame() {
 	const GAME = {
 		board: newBoard(),
 		state: SETTING_FIRST_WORKER,
+		lastBuild: null,
+		lastMove: null,
 		nextMove: "",
 		moves: [],
 		playNotation: null,
@@ -70,6 +72,7 @@ async function playPosition(row, column) {
 				this.workerThree = [row, column];
 			}
 			console.log("Set first worker");
+			this.lastMove = [row, column];
 			if(this.moves.length == 0) {
 				this.moves.push({
 					move: SETTING_FIRST_WORKER,
@@ -109,6 +112,7 @@ async function playPosition(row, column) {
 			const lastMove = this.moves.pop();
 			lastMove.notatedMove += "-" + getNotation(row, column);
 			this.moves.push(lastMove);
+			this.lastMove = [row, column];
 
 			if(this.playerTurn == 0) {
 				this.playerTurn = 1;
@@ -138,10 +142,12 @@ async function playPosition(row, column) {
 			console.log("Attempting move of " + this.selectedWorker);
 			// Can't move on top of a worker
 			if(samePosition(row, column, w1)) {
-				console.log("Can't move on top of first worker");
+				console.log(this.selectedWorker + " selected");
+				this.selectedWorker = 0;
 				break; // TODO: replace with error message
 			} else if (samePosition(row, column, w2)) {
-				console.log("Can't move on top of second worker");
+				console.log(this.selectedWorker + " selected");
+				this.selectedWorker = 1;
 				break; // TODO: replace with error message
 			} else if (samePosition(row, column, w3)) {
 				console.log("Can't move on top of third worker");
@@ -189,6 +195,7 @@ async function playPosition(row, column) {
 						column: column
 					});
 
+					this.lastMove = [row, column];
 
 					if(attemptedLevel == 3) {
 						this.state = WON;
@@ -230,6 +237,8 @@ async function playPosition(row, column) {
 				lastMove.row = row;
 				lastMove.column = column;
 				this.moves.push(lastMove);
+
+				this.lastBuild = [row, column];
 
 				this.playerTurn = playerTurn == 0 ? 1 : 0;
 				this.state = CHOOSING_WORKER;

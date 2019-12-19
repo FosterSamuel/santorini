@@ -35,7 +35,7 @@ var app = new Vue({
         svg: null
       }
     },
-    board: [],
+    board: newBoard(),
     boardSettings: {
       width: 300,
       height: 300,
@@ -56,6 +56,7 @@ var app = new Vue({
   methods: {
     drawBoard: function() {
       this.draw = SVG().addTo('#board');
+
       const width = this.boardSettings.width;
       const height = this.boardSettings.height;
       const verticalGutter = this.boardSettings.verticalGutter;
@@ -103,7 +104,25 @@ var app = new Vue({
       this.renderWorkerIfMoved(this.p2.firstWorker, this.game.workerThree, this.boardSettings.playerTwoColor);
       this.renderWorkerIfMoved(this.p2.secondWorker, this.game.workerFour, this.boardSettings.playerTwoColor);
     },
+    drawBoardPiece: function(row, column) {
+      var building = this.draw.rect(this.boardSettings.cellWidth - 5, this.boardSettings.cellHeight - 5);
+      
+      building.attr({ class: "board-piece" });
+      const level = this.game.board[4 - row][column];
+      console.log(level);
+      if(level == 1) {
+        building.fill("purple");
+      } else if (level == 2) {
+        building.size(this.boardSettings.cellWidth - 20, this.boardSettings.cellHeight - 20);
+        building.fill("gold");
+      } else if (level == 3) {
+        building.size(this.boardSettings.cellWidth - 40, this.boardSettings.cellHeight - 40);
+        building.fill("wheat");
+      }
+      this.moveSVGToBoardPosition(building, row, column);
+    },
     renderWorkerIfMoved: function(worker, gameWorker, color) {
+      if(worker.svg) worker.svg.front();
       if(worker.position[0] != gameWorker[0] || worker.position[1] != gameWorker[1]) {
         worker.position[0] = gameWorker[0];
         worker.position[1] = gameWorker[1];
@@ -126,8 +145,15 @@ var app = new Vue({
       const v = this;
       console.log(move);
       this.game.playPosition(row, column).then(function() {
-        console.log(v.game);
-        v.drawWorkers();
+        if(v.game.lastBuild != null) {
+          v.drawBoardPiece(v.game.lastBuild[0], v.game.lastBuild[1]);
+          v.drawWorkers();
+          v.game.lastBuild = null;
+        }
+        if(v.game.lastMove != null) {
+          v.drawWorkers();
+          v.game.lastMove = null;
+        }
       });
 
       /*

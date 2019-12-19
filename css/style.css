@@ -2,12 +2,25 @@
 	position: absolute;
 }
 
+svg, svg > * {
+	position: relative;
+	z-index: 0;
+}
+
 .board-cell:hover, .board-cell:focus {
 	fill: green;
 }
 
 circle {
+	z-index: 2;
+}
+
+.board-piece, circle {
 	pointer-events: none;
+}
+
+.board-piece {
+	z-index: -2;
 }
 
 [v-cloak] > * { display:none !important; }
