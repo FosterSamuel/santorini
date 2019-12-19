@@ -28,7 +28,8 @@ function startGame() {
 		workerOne: [-1, -1],
 		workerTwo: [-1, -1],
 		workerThree: [-1, -1],
-		workerFour: [-1, -1]
+		workerFour: [-1, -1],
+		winningPlayer: -1
 	};
 
 	return GAME;
@@ -199,9 +200,11 @@ async function playPosition(row, column) {
 
 					if(attemptedLevel == 3) {
 						this.state = WON;
+						this.winningPlayer = this.playerTurn;
 						console.log("Congrats! You win.")
+					} else {
+						this.state = BUILDING;
 					}
-					this.state = BUILDING;
 				}
 			}
 			break;

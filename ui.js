@@ -46,6 +46,7 @@ var app = new Vue({
       playerOneColor: "blue",
       playerTwoColor: "orangered"
     },
+    gameWon: -1,
     game: startGame()
   },
   mounted: function () {
@@ -144,17 +145,26 @@ var app = new Vue({
       const column = move.column;
       const v = this;
       console.log(move);
-      this.game.playPosition(row, column).then(function() {
-        if(v.game.lastBuild != null) {
-          v.drawBoardPiece(v.game.lastBuild[0], v.game.lastBuild[1]);
-          v.drawWorkers();
-          v.game.lastBuild = null;
-        }
-        if(v.game.lastMove != null) {
-          v.drawWorkers();
-          v.game.lastMove = null;
-        }
-      });
+
+      if(this.game.state == WON) {
+        this.gameWon = this.game.winningPlayer;
+      } else {
+        this.game.playPosition(row, column).then(function() {
+          if(v.game.lastBuild != null) {
+            v.drawBoardPiece(v.game.lastBuild[0], v.game.lastBuild[1]);
+            v.drawWorkers();
+            v.game.lastBuild = null;
+          }
+          if(v.game.lastMove != null) {
+            v.drawWorkers();
+            v.game.lastMove = null;
+          }
+
+          if(v.game.state == WON) {
+            v.gameWon = v.game.winningPlayer;
+          }
+        });
+      }
 
       /*
   		const workerOne = this.workerOne;
