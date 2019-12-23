@@ -1,18 +1,53 @@
+:root {
+	--color-board: #d3f9d8;
+	--color-boardCell: #37b24d;
+	--color-highlight: darkgreen;
+	--color-highlightMove: green;
+	--color-highlightBuild: green;
+}
+
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+.hidden {
+	display: none;
+}
+
+#board {
+	padding: 2rem;
+	min-width: 400px;
+	min-height: 400px;
+	width: 100vh;
+	height: 100vh;
+	max-width: 500px;
+	max-height: 500px;
+	margin: 0 auto;
+}
+
 #pieces {
 	position: absolute;
 }
 
-svg, svg > * {
-	position: relative;
-	z-index: 0;
+.board-field {
+	fill: var(--color-board);
+}
+
+.board-cell {
+	fill: var(--color-boardCell);
+	width: 19.5%;
+	height: 19.5%;
 }
 
 .board-cell:hover, .board-cell:focus {
-	fill: rgba(50, 155, 0, 1);
+	fill: var(--color-highlight);
 }
 
-circle {
-	z-index: 2;
+.board-highlight, .board-highlight:hover, .board-highlight:focus {
+	pointer-events: none;
+	fill: var(--color-highlight);
 }
 
 .board-piece, circle {
@@ -23,8 +58,19 @@ circle {
 	z-index: -2;
 }
 
-.highlighted {
-	fill: green;
+.highlightedMove {
+	fill: var(--color-highlightMove);
+	position: relative;
+	z-index: 0;
+}
+
+.highlightedMove:before {
+	content: "Ababweawe";
+	color: black;
+}
+
+.highlightedBuild {
+	fill: var(--color-highlightBuild);
 }
 
 [v-cloak] > * { display:none !important; }

@@ -26,7 +26,9 @@ function startGame() {
 			workerFour: []
 		},
 		legalMoves: [],
+		legalBuilds: [],
 		listLegalMoves: listLegalMoves,
+		listLegalBuilds: listLegalBuilds,
 		moves: [],
 		nextMove: "",
 		playNotation: null,
@@ -51,7 +53,81 @@ function newBoard() {
 		    [0, 0, 0, 0, 0]]; // Row 0
 }
 
-async function listLegalMoves() {
+function listLegalBuilds() {
+	this.legalBuilds = [];
+
+	const findLegalBuilds = determineLegalBuilds.bind(this);
+
+	this.legal.workerOne = findLegalBuilds(this.workerOne);
+	this.legal.workerTwo = findLegalBuilds(this.workerTwo);
+	this.legal.workerThree = findLegalBuilds(this.workerThree);
+	this.legal.workerFour = findLegalBuilds(this.workerFour);
+
+	if(this.playerTurn == 0) {
+		if(this.selectedWorker == 0) {
+			this.legalBuilds = this.legal.workerOne;
+		} else {
+			this.legalBuilds = this.legal.workerTwo;
+		}
+	} else {
+		if(this.selectedWorker == 0) {
+			this.legalBuilds = this.legal.workerThree;
+		} else {
+			this.legalBuilds = this.legal.workerFour;
+		}
+	}
+
+	console.log("Found legal builds: ");
+	console.log(this.legalBuilds);
+}
+
+function determineLegalBuilds(worker) {
+	const builds = [];
+	const row = worker[0];
+	const column = worker[1];
+	const workerLevel = this.board[4 - row][column];
+
+	const isLegal = isBuildLegal.bind(this);
+	
+	// Check up
+	if(isLegal(worker, workerLevel, row + 1, column)) {
+		builds.push([row + 1, column]);
+	}
+
+	// Check diag right up
+	if(isLegal(worker, workerLevel, row + 1, column + 1)) {
+		builds.push([row + 1, column + 1]);
+	}
+
+	// Check right
+	if(isLegal(worker, workerLevel, row, column + 1)) {
+		builds.push([row, column + 1]);
+	}
+	// Check diag right down
+	if(isLegal(worker, workerLevel, row - 1, column + 1)) {
+		builds.push([row - 1, column + 1]);
+	}
+	// Check down
+	if(isLegal(worker, workerLevel, row - 1, column)) {
+		builds.push([row - 1, column]);
+	}
+	// Check diag left down
+	if(isLegal(worker, workerLevel, row - 1, column - 1)) {
+		builds.push([row - 1, column - 1]);
+	}
+	// Check left
+	if(isLegal(worker, workerLevel, row, column - 1)) {
+		builds.push([row, column - 1]);
+	}
+	// Check diag left up
+	if(isLegal(worker, workerLevel, row + 1, column - 1)) {
+		builds.push([row + 1, column - 1]);
+	}
+
+	return builds;
+}
+
+function listLegalMoves() {
 	this.legalMoves = [];
 
 	const findLegalMoves = determineLegalMoves.bind(this);
@@ -123,18 +199,25 @@ function determineLegalMoves(worker) {
 }
 
 function isMoveLegal(worker, level, row, column) {
+	if(moveIsOutsideBoard(row, column)) return 0;
+	if(this.board[4 - row][column] > level + 1) return 0;
+	
+	const isLegal = isBuildLegal.bind(this);
+	return isLegal(worker, level, row, column);
+}
+
+function isBuildLegal(worker, level, row, column) {
+	if(moveIsOutsideBoard(row, column)) return 0;
 	const workerRow = worker[0];
 	const workerColumn = worker[1];
-
-	if(moveIsOutsideBoard(row, column)) return 0;
 	
 	if(samePosition(row, column, this.workerOne)) return 0;
 	if(samePosition(row, column, this.workerTwo)) return 0;
 	if(samePosition(row, column, this.workerThree)) return 0;
 	if(samePosition(row, column, this.workerFour)) return 0;
 
-	if(this.board[4 - row][column] > level + 1) return 0;
-	
+	if(this.board[4 - row][column] == DOME) return 0;
+
 	return 1;
 }
 
