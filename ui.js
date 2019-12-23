@@ -58,11 +58,6 @@ var app = new Vue({
 
       this.draw = SVG().addTo('#board');
       this.draw.size(this.boardSettings.width + "%", this.boardSettings.height + "%");
-      
-      const computedStyles = window.getComputedStyle(this.draw.node);
-      const computedWidth = computedStyles.getPropertyValue("width");
-      const computedHeight = computedStyles.getPropertyValue("height");
-
       this.draw.rect(this.boardSettings.width + "%", this.boardSettings.height + "%").attr({ class:"board-field" });
 
       for(var i = 0; i < 5; i++) {
@@ -70,12 +65,12 @@ var app = new Vue({
           const x = j;
           const y = (4 - i); 
 
-          var rect = this.draw.rect(30)
+          var rect = this.draw.rect("19.5%")
                               .attr({ class: "board-cell" });
           
           //rect.move(.move(this.boardSettings.cellWidth*x + this.boardSettings.verticalGutter*x, 
             //                        this.boardSettings.cellHeight*y + this.boardSettings.horizontalGutter*y)
-          var circle = this.draw.circle(15)
+          var circle = this.draw.circle("3%")
                                 .attr({ class: "board-highlight" });
           circle.center("10%", "10%");
           var group = this.draw.nested().add(rect).add(circle)

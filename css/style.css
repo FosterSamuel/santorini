@@ -16,12 +16,16 @@
 	display: none;
 }
 
+#container {
+	width: 100%;
+}
+
 #board {
-	padding: 2rem;
-	min-width: 400px;
-	min-height: 400px;
-	width: 100vh;
-	height: 100vh;
+	padding: 1rem;
+	min-width: 250px;
+	min-height: 250px;
+	width: 100vw;
+	height: 100vw;
 	max-width: 500px;
 	max-height: 500px;
 	margin: 0 auto;
@@ -43,6 +47,7 @@
 
 .board-cell:hover, .board-cell:focus {
 	fill: var(--color-highlight);
+	cursor: pointer;
 }
 
 .board-highlight, .board-highlight:hover, .board-highlight:focus {
