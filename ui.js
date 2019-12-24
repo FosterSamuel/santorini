@@ -42,8 +42,8 @@ var app = new Vue({
       height: 100,
       cellSize: 19.5,
       gutter: .5,
-      playerOneColor: "blue",
-      playerTwoColor: "orangered"
+      playerOneColor: "#ffd8a8",
+      playerTwoColor: "#99e9f2"
     },
     gameWon: -1,
     game: startGame()
@@ -52,6 +52,9 @@ var app = new Vue({
     this.drawBoard();
   },
   methods: {
+    restartGame: function() {
+      window.location.reload();
+    },
     drawBoard: function() {
       const v = this;
       const playMove = this.playMove;
@@ -91,26 +94,35 @@ var app = new Vue({
       this.renderWorkerIfMoved(this.p2.secondWorker, this.game.workerFour, this.boardSettings.playerTwoColor);
     },
     drawBoardPiece: function(row, column) {
-      var building = this.draw.rect(this.boardSettings.cellSize - 5, this.boardSettings.cellSize - 5);
-      
-      building.attr({ class: "board-piece" });
       const level = this.game.board[4 - row][column];
-      console.log(level);
-      if(level == FIRST_LEVEL) {
-        building.size("10%","10%");
-        building.fill("purple");
-      } else if (level == SECOND_LEVEL) {
-        building.size("10%","10%");
-        building.fill("gold");
-      } else if (level == THIRD_LEVEL) {
-        building.size("10%","10%");
-        building.fill("blue");
-      } else if (level == DOME) {
-        building.size("10%","10%");
-        building.fill("red");
+      let building;
+
+      if(level != DOME) {
+        building = this.draw.rect(this.boardSettings.cellSize - 5, this.boardSettings.cellSize - 5);
       }
 
+      console.log(level);
+      if(level == FIRST_LEVEL) {
+        building.size("15%","15%");
+        building.fill("#495057");
+      } else if (level == SECOND_LEVEL) {
+        building.size("13%","13%");
+        building.fill("#868e96");
+      } else if (level == THIRD_LEVEL) {
+        building.size("10%","10%");
+        building.fill("#adb5bd");
+      } else if (level == DOME) {
+        building = this.draw.circle(this.boardSettings.cellSize - 5);
+        building.size("8%");
+        building.fill("#4c6ef5");
+      }
+
+      building.attr({ class: "board-piece" });
+
       this.moveSVGToBoardPosition(building, row, column);
+      if(level == DOME) {
+        this.centerSVGToBoardPosition(building, row, column);
+      }
     },
     renderWorkerIfMoved: function(worker, gameWorker, color) {
       if(worker.svg) worker.svg.front();

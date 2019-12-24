@@ -4,6 +4,7 @@
 	--color-highlight: darkgreen;
 	--color-highlightMove: green;
 	--color-highlightBuild: green;
+	--s1: 1rem;
 }
 
 * {
@@ -16,19 +17,61 @@
 	display: none;
 }
 
-#container {
-	width: 100%;
+.with-sidebar {
+  overflow: hidden;
+}
+
+.with-sidebar > * {
+  display: flex;
+  flex-wrap: wrap;
+  margin: calc(var(--s1) / 2 * -1);
+}
+
+.with-sidebar > * > * {
+  margin: calc(var(--s1) / 2);
+  flex-grow: 1;
+}
+
+.with-sidebar > * > :first-child {
+	flex-basis: 0;
+	flex-grow: 1;
+}
+  
+
+.boardArea {
+	max-width: 100%;
+}
+
+.game {
+	padding: 1rem;
+}
+
+.game p {
+	line-height: 2;
+	max-width: 20ch;
+}
+
+.restartGame {
+	font-weight: bold;
+	border: 0;
+	padding: .5rem 1rem;
+	color: #efefef;
+	border-radius: 5px;
+	background: #1971c2;
+}
+
+.restartGame:hover {
+	cursor: pointer;
 }
 
 #board {
-	padding: 1rem;
+	padding: 1rem 1rem 0 1rem;
 	min-width: 250px;
 	min-height: 250px;
 	width: 100vw;
 	height: 100vw;
 	max-width: 500px;
 	max-height: 500px;
-	margin: 0 auto;
 }
 
 #pieces {
