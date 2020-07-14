@@ -10,26 +10,62 @@
 	<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-	<main class="with-sidebar" id="container" v-cloak>
-		<div>
-			<section class="boardArea">
-				<section id="board">
-				</section>
+	<h1>Santorini</h1>
+	<main id="container" v-cloak>
+		<section class="game-setup" v-if="!conn.setup">
+			<section class="game-hostOrClient" v-if="!conn.offer && !conn.answerDescription">
+				<textarea  class="game-invitationCode" placeholder="Invitation code here" v-model="conn.remoteDescription"></textarea>
+				<button class="game-join" v-bind:disabled="!conn.remoteDescription" v-on:click="joinGame()">Join game</button>
+				<p>or</p>
+				<button class="game-create" v-if="" v-on:click="createGame()">Create game</button>
+			</section>	
+			
+			<section class="game-offer" v-if="conn.offer">
+				<p>Send invitation code to other player:</p>
+				<textarea name="offer" class="game-connOffer" readonly="true">{{ conn.offer }}</textarea>
+				<button class="copy-offer" v-on:click="copyGameOffer()">Copy to clipboard {{ conn.offerCopied }}</button>
+				<p>Put their response code here:</p>
+				<textarea name="response" class="game-responseCode" v-model="conn.remoteAnswerDescription"></textarea>
+				<button v-on:click.lazy="startGame()" v-bind:disabled="conn.starting || !conn.remoteAnswerDescription">Start game</button>
 			</section>
-			<section class="game">
-				<section v-cloak v-if="gameWon > -1"><p>{{ gameWon == 0 ? "First player wins!" : "Second player wins!" }}<p><button class="restartGame" v-on:click="restartGame">Restart Game</button></section>
-				<p v-cloak v-else>{{ game.playerTurn == 0 ? "First player's turn." : "Second player's turn." }}</p>
-				<a href="https://www.youtube.com/watch?v=wIJs0k-1ync" target="_blank" class="small">Game rules</a>
-				<ul>
-					<h4>Moves</h4>
-					<li v-for="move in game.moves">{{ move.notatedMove }}{{ move.build == -1 ? "" : "   " + move.build }}</li>
-				</ul>
+			<section class="game-offer" v-if="conn.answerDescription">
+				<p>Send response code to host player:</p>
+				<textarea name="response-code" class="game-connOffer" :value="conn.answerDescription" readonly="true"></textarea>
+				<button class="copy-offer" v-on:click="copyAnswerDescription()">Copy to clipboard {{ conn.offerCopied }}</button>
 			</section>
-		</div>
+		</section>
+		<section class="live-game" v-else>
+			<p v-cloak vif="gameWon == -1">{{ game.playerTurn == (conn.host ? 0 : 1) ? "Your turn." : "Other player's turn." }}</p>
+			<section class="with-sidebar">
+				<div>
+					<section class="boardArea">
+						<section id="board">
+						</section>
+					</section>
+					<section class="game">
+						<section v-cloak v-if="gameWon > -1"><p>{{ gameWon == 0 ? "First player wins!" : "Second player wins!" }}<p></section>
+						<a href="https://www.youtube.com/watch?v=wIJs0k-1ync" target="_blank" class="small">Game rules</a>
+						<ul>
+							<h4>Moves</h4>
+							<li v-for="move in game.moves">{{ move.notatedMove }}{{ move.build == -1 ? "" : "   " + move.build }}</li>
+						</ul>
+					</section>
+				</div>
+			</section>
+		</section>
+
 	</main>
+	<footer>
+		<p>Made by <a target="_blank" href="https://www.fostersamuel.com">Samuel Foster</a> and freely available <a target="_blank" href="https://github.com/fostersamuel/santorini">here.</a> P2P connectivity powered by <a target="_blank" href="https://michal.wrzosek.pl/">Michał Wrzosek's</a> project <a href="https://github.com/michal-wrzosek/p2p-chat" target="_blank">p2p-chat.</a></p>
+	</footer>
+	<!-- dev versions of Vue and SVG.js
 	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.0.13/svg.js"></script>
-	<script src="game.js"></script>
-	<script src="ui.js"></script>
+	-->
+	<script src="js/vue.min.js"></script>
+	<script src="js/createPeerConnection.js"></script>
+	<script src="js/game.js"></script>
+	<script src="js/svg.min.js"></script>
+	<script src="js/ui.js"></script>
 </body>
 </html>

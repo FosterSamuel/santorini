@@ -1,4 +1,27 @@
 const container = document.getElementById("board");
+const iceServers = [
+      {
+        urls: 'stun:stun.l.google.com:19302',
+      },
+      {
+        urls: 'stun:stun.2.google.com:19302',
+      },
+      {
+        urls: 'stun:stun.3.google.com:19302',
+      },
+      {
+        urls: 'stun:stun.4.google.com:19302',
+      },
+      {
+        urls: 'stun:stun.voiparound.com',
+      },
+      {
+        urls: 'stun:stun.ideasip.com',
+      },
+      {
+        urls: 'stun:stun.iptel.org',
+      },
+    ];
 
 function clickedBoard(cellNumber) {
 	const notation = getNotation(x, y);
@@ -12,6 +35,17 @@ function getNotationWithPiece(piece, row, column) {
 var app = new Vue({
   el: '#container',
   data: {
+    conn: {
+      setup: false,
+      host: false,
+      starting: false,
+      offer: "",
+      offerCopied: "",
+      remoteDescription: "",
+      answerDescription: "",
+      remoteAnswerDescription: "",
+      state: "Connected"
+    },
     move: '',
     build: '',
     draw: null,
@@ -46,14 +80,83 @@ var app = new Vue({
       playerTwoColor: "#99e9f2"
     },
     gameWon: -1,
-    game: startGame()
-  },
-  mounted: function () {
-    this.drawBoard();
+    game: startGame(),
+    setAnswerDescription: null,
+    sendMessage: null
   },
   methods: {
-    restartGame: function() {
-      window.location.reload();
+    createGame: async function () {
+      const onChannelOpen = () => { 
+        this.sendMessage("Start!");
+        this.conn.setup = true;
+        setTimeout(() => {
+          this.drawBoard();
+        }, 500);
+      };
+      const onMessageReceived = (message) => this.handleIncomingMessage(message);
+      const onConnectionStateChange = (event) => {
+        this.conn.state = event.target.connectionState;
+        console.log(event);
+      };
+      
+      const { localDescription, setAnswerDescription, sendMessage } = await createPeerConnection({ iceServers, onMessageReceived, onChannelOpen, onConnectionStateChange });
+
+      this.conn.host = true;
+      this.setAnswerDescription = setAnswerDescription;
+      this.sendMessage = sendMessage;
+      this.conn.offer = btoa(localDescription);
+    },
+    copyGameOffer: function () {
+      navigator.clipboard.writeText(this.conn.offer);
+      this.conn.offerCopied = "(Copied!)";
+    },
+    copyAnswerDescription: function () {
+      navigator.clipboard.writeText(this.conn.answerDescription);
+      this.conn.offerCopied = "(Copied!)";
+    },
+    joinGame: async function() {
+      const remoteDescription = atob(this.conn.remoteDescription);
+      const onChannelOpen = () => console.log(`Connection ready!`);
+      const onMessageReceived = (message) => this.handleIncomingMessage(message);
+      const onConnectionStateChange = (event) => {
+        this.conn.state = event.target.connectionState;
+        console.log(event);
+      };
+      
+      let { localDescription, sendMessage } = await createPeerConnection({ remoteDescription, iceServers, onMessageReceived, onChannelOpen, onConnectionStateChange });
+
+      this.conn.answerDescription = btoa(localDescription);
+      this.sendMessage = sendMessage;
+    },
+    startGame: function() {
+      this.conn.starting = true;
+      const answerDescription = atob(this.conn.remoteAnswerDescription);
+      
+      this.setAnswerDescription(answerDescription);
+    },
+    handleIncomingMessage: function(msg) {
+      const v = this;
+      if(msg.length == 0 || msg.length > 15) {
+        // Ignore message of unrealistic size.
+        console.log("Long message received. Ignoring.");
+      } else {
+        if(v.conn.setup == false) {
+          v.conn.setup = true;
+          setTimeout(() => {
+            v.drawBoard();
+          }, 500);
+        } else if (v.gameWon == -1){
+          const myTurnNum = v.conn.host ? 0 : 1;
+          const isMyTurn = (v.game.playerTurn == myTurnNum);
+
+          if(!isMyTurn) {
+            console.log("Receiving move . . .", msg);
+            v.playMove({row: parseInt(msg[0]), column: parseInt(msg[2])});
+          }
+        } else {
+          v.restartGame();
+        }
+      }
     },
     drawBoard: function() {
       const v = this;
@@ -82,7 +185,12 @@ var app = new Vue({
           this.board[y][x] = rect;
           this.boardHighlights[y][x] = circle;
           rect.click(function() {
-            playMove({row:(4 - y) , column:x });
+            const myTurnNum = v.conn.host ? 0 : 1;
+            const isMyTurn = (v.game.playerTurn == myTurnNum);
+
+            if(isMyTurn) {
+              playMove({row:(4 - y) , column:x });
+            }
           });
         }
       }
@@ -153,12 +261,17 @@ var app = new Vue({
       const row = move.row;
       const column = move.column;
       const v = this;
-      console.log(move);
+      const myTurnNum = v.conn.host ? 0 : 1;
+      const isMyTurn = (v.game.playerTurn == myTurnNum);
 
       if(this.game.state == WON) {
         this.gameWon = this.game.winningPlayer;
       } else {
-        this.game.playPosition(row, column).then(function() {
+        this.game.playPosition(row, column).then(function(isLegalMove) {
+          if(isLegalMove && isMyTurn) {
+            console.log("Sending move . . .", move);
+            v.sendMessage(move.row + " " + move.column);
+          }
           v.clearBoard();
           if(v.game.lastBuild != null) {
             v.drawBoardPiece(v.game.lastBuild[0], v.game.lastBuild[1]);

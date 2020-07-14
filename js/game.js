@@ -242,7 +242,7 @@ async function playPosition(row, column) {
 			if(samePosition(row, column, w3)) {
 				console.log("illegal move -- worker already there");
 				// TODO: replace with error message
-				break;
+				return false;
 			}
 
 			if(playerTurn == 0) {
@@ -279,7 +279,7 @@ async function playPosition(row, column) {
 				samePosition(row, column, w4)) {
 				console.log("illegal move -- worker already there");
 				// TODO: replace with error message
-				break;
+				return false;
 			} 
 
 			if(playerTurn == 0) {
@@ -309,6 +309,7 @@ async function playPosition(row, column) {
 				this.selectedWorker = -1;
 				console.log("No worker selected");
 				// TODO: replace with error message
+				return false;
 			}
 
 			if (this.selectedWorker > -1) {
@@ -332,10 +333,10 @@ async function playPosition(row, column) {
 				break; // TODO: replace with error message
 			} else if (samePosition(row, column, w3)) {
 				console.log("Can't move on top of third worker");
-				break; // TODO: replace with error message
+				return false;
 			} else if (samePosition(row, column, w4)) {
 				console.log("Can't move on top of fourth worker");
-				break; // TODO: replace with error message
+				return false;
 			}
 
 			// Position must be adjacent
@@ -343,7 +344,7 @@ async function playPosition(row, column) {
 				const attemptedLevel = this.board[4 - row][column];
 				if(attemptedLevel == 4) {
 					console.log("Can't move on to dome");
-					break; // TODO: replace with error message
+					return false;
 				}
 
 				const workerRow = selectedW[0];
