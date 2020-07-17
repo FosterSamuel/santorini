@@ -10,27 +10,24 @@
 	<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-	<h1>Santorini</h1>
+	<h1><a href="../santorini/">Santorini</a></h1>
 	<main id="container" v-cloak>
 		<section class="game-setup" v-if="!conn.setup">
 			<section class="game-hostOrClient" v-if="!conn.offer && !conn.answerDescription">
-				<textarea  class="game-invitationCode" placeholder="Invitation code here" v-model="conn.remoteDescription"></textarea>
-				<button class="game-join" v-bind:disabled="!conn.remoteDescription" v-on:click="joinGame()">Join game</button>
-				<p>or</p>
 				<button class="game-create" v-if="" v-on:click="createGame()">Create game</button>
 			</section>	
 			
 			<section class="game-offer" v-if="conn.offer">
-				<p>Send invitation code to other player:</p>
-				<textarea name="offer" class="game-connOffer" readonly="true">{{ conn.offer }}</textarea>
+				<p>Send invitation link:</p>
+				<input name="offer" class="game-invitationLink" readonly="true" :value="conn.offer">
 				<button class="copy-offer" v-on:click="copyGameOffer()">Copy to clipboard {{ conn.offerCopied }}</button>
-				<p>Put their response code here:</p>
-				<textarea name="response" class="game-responseCode" v-model="conn.remoteAnswerDescription"></textarea>
+				<p>Put response code here:</p>
+				<input name="response" class="game-responseCode" v-on:keyup.enter="startGame()" v-model="conn.remoteAnswerDescription" />
 				<button v-on:click.lazy="startGame()" v-bind:disabled="conn.starting || !conn.remoteAnswerDescription">Start game</button>
 			</section>
 			<section class="game-offer" v-if="conn.answerDescription">
 				<p>Send response code to host player:</p>
-				<textarea name="response-code" class="game-connOffer" :value="conn.answerDescription" readonly="true"></textarea>
+				<input name="response-code" class="game-invitationLink" :value="conn.answerDescription" readonly="true">
 				<button class="copy-offer" v-on:click="copyAnswerDescription()">Copy to clipboard {{ conn.offerCopied }}</button>
 			</section>
 		</section>
@@ -58,10 +55,10 @@
 	<footer>
 		<p>Made by <a target="_blank" href="https://www.fostersamuel.com">Samuel Foster</a> and freely available <a target="_blank" href="https://github.com/fostersamuel/santorini">here.</a> P2P connectivity powered by <a target="_blank" href="https://michal.wrzosek.pl/">Michał Wrzosek's</a> project <a href="https://github.com/michal-wrzosek/p2p-chat" target="_blank">p2p-chat.</a></p>
 	</footer>
-	<!-- dev versions of Vue and SVG.js
-	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> 
+	 <!-- dev versions of Vue and SVG.js -->
+	<!-- <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.0.13/svg.js"></script>
-	-->
+	 -->
 	<script src="js/vue.min.js"></script>
 	<script src="js/createPeerConnection.js"></script>
 	<script src="js/game.js"></script>

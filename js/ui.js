@@ -32,6 +32,10 @@ function getNotationWithPiece(piece, row, column) {
 	return piece + "" + getNotation(row, column);
 } 
 
+function currentURLWithParam() {
+  return window.location + "?join=";
+}
+
 var app = new Vue({
   el: '#container',
   data: {
@@ -76,15 +80,27 @@ var app = new Vue({
       height: 100,
       cellSize: 19.5,
       gutter: .5,
-      playerOneColor: "#ffd8a8",
-      playerTwoColor: "#99e9f2"
+      playerOneColor: "#00b2f6",
+      playerTwoColor: "#c99d79"
     },
     gameWon: -1,
     game: startGame(),
     setAnswerDescription: null,
     sendMessage: null
   },
+  created: function () {
+    const parsedUrl = new URL(window.location.href);
+    const joinCode = null || parsedUrl.searchParams.get("join");
+
+    if(joinCode) {
+      this.conn.remoteDescription = joinCode;
+      this.joinGame();
+    }
+  },
   methods: {
+    reloadPage: function() {
+      window.location.reload(); 
+    },
     createGame: async function () {
       const onChannelOpen = () => { 
         this.sendMessage("Start!");
@@ -104,7 +120,7 @@ var app = new Vue({
       this.conn.host = true;
       this.setAnswerDescription = setAnswerDescription;
       this.sendMessage = sendMessage;
-      this.conn.offer = btoa(localDescription);
+      this.conn.offer = currentURLWithParam() + btoa(localDescription);
     },
     copyGameOffer: function () {
       navigator.clipboard.writeText(this.conn.offer);
@@ -129,10 +145,13 @@ var app = new Vue({
       this.sendMessage = sendMessage;
     },
     startGame: function() {
-      this.conn.starting = true;
-      const answerDescription = atob(this.conn.remoteAnswerDescription);
+      const v = this;
+      v.conn.starting = true;
+      const answerDescription = atob(v.conn.remoteAnswerDescription);
       
-      this.setAnswerDescription(answerDescription);
+      setTimeout(() => {
+        v.setAnswerDescription(answerDescription);
+      }, 1000);
     },
     handleIncomingMessage: function(msg) {
       const v = this;
@@ -209,23 +228,25 @@ var app = new Vue({
         building = this.draw.rect(this.boardSettings.cellSize - 5, this.boardSettings.cellSize - 5);
       }
 
-      console.log(level);
+      let boardClass = "board-piece-";
+
       if(level == FIRST_LEVEL) {
-        building.size("15%","15%");
-        building.fill("#495057");
+        building.size("15%","15%");     
+        boardClass += "1";
       } else if (level == SECOND_LEVEL) {
         building.size("13%","13%");
-        building.fill("#868e96");
+        boardClass += "2";
       } else if (level == THIRD_LEVEL) {
         building.size("10%","10%");
-        building.fill("#adb5bd");
+        boardClass += "3";
       } else if (level == DOME) {
         building = this.draw.circle(this.boardSettings.cellSize - 5);
         building.size("8%");
-        building.fill("#4c6ef5");
+        boardClass += "4";
       }
 
-      building.attr({ class: "board-piece" });
+
+      building.attr({ class: "board-piece " + boardClass });
 
       this.moveSVGToBoardPosition(building, row, column);
       if(level == DOME) {
@@ -253,7 +274,6 @@ var app = new Vue({
          .y(((4-row)*this.boardSettings.cellSize + (4-row)*this.boardSettings.gutter + this.boardSettings.cellSize/2 - height/2) + "%");
     },
     centerSVGToBoardPosition: function(svg, row, column) {
-      console.log("cx: " + ((column*this.boardSettings.cellSize + column*this.boardSettings.gutter + this.boardSettings.cellSize/2) + "%") );
       svg.cx((column*this.boardSettings.cellSize + column*this.boardSettings.gutter + this.boardSettings.cellSize/2) + "%")
          .cy(((4-row)*this.boardSettings.cellSize + (4-row)*this.boardSettings.gutter + this.boardSettings.cellSize/2) + "%");
     },
@@ -335,8 +355,6 @@ var app = new Vue({
       this.game.legalMoves = [];
     },
     highlightLegalBuilds: function() {
-      console.log("Checking legal");
-      console.log(this.game.legalBuilds);
       for(const positionPair of this.game.legalBuilds) {
         this.board[4 - positionPair[0]][positionPair[1]]
            .attr({class: "board-cell highlightedBuild"});
