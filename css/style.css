@@ -1,9 +1,23 @@
 :root {
-	--color-board: #d3f9d8;
-	--color-boardCell: #37b24d;
-	--color-highlight: darkgreen;
-	--color-highlightMove: green;
-	--color-highlightBuild: green;
+	--color-board: transparent;
+	--color-boardCell: #328700;
+	--color-highlight: #379400;
+	--color-highlightMove: #41b000;
+	--color-highlightBuild: #41b000;
+
+	--color-lightest: hsl(170, 60%, 96%);
+	--color-light: hsl(173, 100%, 97%);
+	--color-accent: hsl(188, 65%, 55%);
+	--color-main: hsl(218, 61%, 50%);
+	--color-dark: hsl(236, 52%, 51%);
+
+	--color-boardPieceFirst:#d8e8e5;
+	--color-boardPieceSecond:#a8b5b3;
+	--color-boardPieceThird: #80868b;
+	--color-boardPieceDome: var(--color-main);
+
+	--color-text: hsl(236, 52%, 31%);
+
 	--s1: 1rem;
 }
 
@@ -15,8 +29,8 @@
 }
 
 body {
-	background: hsl(215, 100%, 98%);
-  	color: #091702;
+	background: var(--color-lightest);
+  	color: var(--color-text);
   	font-family: -apple-system,system-ui,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen-Sans,Ubuntu,Cantarell,'Helvetica Neue',sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol';
   	line-height: 1.54;
 }
@@ -26,17 +40,12 @@ main {
 	margin: 0 auto;
 }
 
-
-footer {
-	margin: 25vh auto 0 auto;
-	padding-bottom: 20vh;
-	font-size: .85rem;
-	text-align: center;
-}
-
 .hidden {
 	display: none;
 }
+
+[v-cloak] > * { display:none !important; }
+[v-cloak]::before { content: ". . ."; }
 
 .with-sidebar {
   overflow: hidden;
@@ -59,8 +68,14 @@ footer {
 }
 
 h1 {
-	color: dodgerblue;
+	color: var(--color-dark);
 	text-align: center;
+}
+
+h1 a {
+	color: inherit;
+	display: block;
+	text-decoration: none;
 }
 
 .game-setup, .game-offer {
@@ -69,21 +84,22 @@ h1 {
 	max-width: 500px;
 }
 
-.game-create, .game-join {
+.game-create {
 	display: block;
-	width: 20ch;
-	padding: .5rem 0;
-	font-size: 1rem;
-	background: dodgerblue;
-	color: #efefef;
+	text-transform: uppercase;
+	font-size: .75rem;
 	font-weight: bold;
+	padding: 1rem 3rem;
+	letter-spacing: 1px;
+	background: var(--color-dark);
+	color: hsla(0,0%, 100%, 0.86);
 	border: 0;
 	border-radius: 5px;
-	margin: 0 auto 1rem auto;
+	margin: 1rem auto;
 }
 
-.game-join:disabled {
-	background: grey;
+.game-create:hover {
+	background: var(--color-main);
 }
 
 .game-hostOrClient p {
@@ -108,31 +124,53 @@ h1 {
 	margin-bottom: .25rem;
 }
 
-.game-connOffer, .game-responseCode {
-	padding: .5rem 1rem;
-	margin: 0;
+.game-invitationLink {
+	padding: .75rem .5rem;
+	margin-bottom: .3rem;
 	display: block;
 	width: 100%;
-	height: 150px;
-	border: 1px solid black;
+	border: 0;
+	border-radius: 5px;
+	background: hsl(268deg, 89%, 8%);
+	color: grey;
+	font-size: .9rem;
+}
+
+.game-responseCode {
+	padding: .75rem .5rem;
+	font-size: .9rem;
+	margin: 0 0 .3rem 0;
+	display: block;
+	font-family: inherit;
+	width: 100%;
+	border: 1px solid hsl(173, 10%, 90%);
+	box-shadow: inset 0 2px 4px 0 hsla(0, 0%, 0%, 0.08);
 	resize: none;
+	color: var(--color-text);
+}
+
+.game-offer button:disabled {
+	opacity: 0.5;
 }
 
 .game-offer button {
 	display: block;
 	width: 100%;
-	padding: .5rem 0;
-	font-size: .8rem;
-	background: dodgerblue;
-	color: #efefef;
+	color: var(--color-lightest);
 	font-weight: bold;
 	border: 0;
 	border-radius: 5px;
 	margin: 0 auto 1rem auto;
+	text-transform: uppercase;
+	font-size: .75rem;
+	font-weight: bold;
+	padding: 1rem;
+	letter-spacing: 1px;
+	background: var(--color-dark);
 }
 
-.game-offer button:disabled {
-	background: grey;
+.game-offer button:not(:disabled):hover {
+	background: var(--color-main);
 }
 
 .boardArea {
@@ -189,6 +227,19 @@ h1 {
 	z-index: -2;
 }
 
+.board-piece-1 {
+	fill: var(--color-boardPieceFirst);
+}
+.board-piece-2 {
+	fill: var(--color-boardPieceSecond);
+}
+.board-piece-3 {
+	fill: var(--color-boardPieceThird);
+}
+.board-piece-4 {
+	fill: var(--color-boardPieceDome);
+}
+
 .highlightedMove {
 	fill: var(--color-highlightMove);
 	position: relative;
@@ -204,12 +255,13 @@ h1 {
 	fill: var(--color-highlightBuild);
 }
 
-[v-cloak] > * { display:none !important; }
-[v-cloak]::before { content: ". . ."; }
+footer {
+	margin: 25vh auto 0 auto;
+	padding: 0 1rem 20vh 1rem;
+	font-size: .85rem;
+}
 
 @media(min-width:1000px) {
-	
-
 	#board {
 		float: right;
 	}
@@ -218,8 +270,32 @@ h1 {
 		padding: 0;
 	}
 
+	button {
+		cursor: pointer;
+		transition-property: all;
+		transition-duration: .10s;
+		transition-timing-function: ease-in-out;
+
+	}
+
+	button:not(:disabled):hover {
+		transform: translateY(-2px);
+	}
+
+	button:disabled:hover {
+		cursor: no-drop;
+	}
+
 	h1 {
 		text-align: left;
-		padding: 0 0 0 1rem;
+	}
+
+	h1 a {
+		display: inline-block;
+		padding: 0 1rem;
+	}
+
+	footer {
+		text-align: center;
 	}
 }
