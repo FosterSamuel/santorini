@@ -1,22 +1,6 @@
-// Game states
-const SETTING_FIRST_WORKER = 0,
-	  SETTING_SECOND_WORKER = 1,
-	  CHOOSING_WORKER = 2,
-	  MOVING_WORKER = 3,
-	  BUILDING = 4,
-	  WON = 5;
-
-// Buildings
-const GROUND 	  = 0,
-	  FIRST_LEVEL = 1,
-	  SECOND_LEVEL= 2,
-	  THIRD_LEVEL = 3,
-	  DOME		  = 4;
-
 function startGame() {
 	const GAME = {
 		board: newBoard(),
-		state: SETTING_FIRST_WORKER,
 		lastBuild: null,
 		lastMove: null,
 		legal: {
@@ -39,7 +23,19 @@ function startGame() {
 		workerOne: [-1, -1],
 		workerTwo: [-1, -1],
 		workerThree: [-1, -1],
-		workerFour: [-1, -1]
+		workerFour: [-1, -1],
+		GROUND: 0,
+	  	FIRST_LEVEL: 1,
+	  	SECOND_LEVEL: 2,
+	  	THIRD_LEVEL: 3,
+	  	DOME: 4,
+	  	SETTING_FIRST_WORKER: 0,
+		SETTING_SECOND_WORKER: 1,
+		CHOOSING_WORKER: 2,
+		MOVING_WORKER: 3,
+		BUILDING: 4,
+		WON: 5,
+		state: 0
 	};
 
 	return GAME;
@@ -216,7 +212,7 @@ function isBuildLegal(worker, level, row, column) {
 	if(samePosition(row, column, this.workerThree)) return 0;
 	if(samePosition(row, column, this.workerFour)) return 0;
 
-	if(this.board[4 - row][column] == DOME) return 0;
+	if(this.board[4 - row][column] == this.DOME) return 0;
 
 	return 1;
 }
@@ -238,7 +234,7 @@ async function playPosition(row, column) {
 	} 
 
 	switch(this.state) {
-		case SETTING_FIRST_WORKER:
+		case this.SETTING_FIRST_WORKER:
 			if(samePosition(row, column, w3)) {
 				console.log("illegal move -- worker already there");
 				// TODO: replace with error message
@@ -254,7 +250,7 @@ async function playPosition(row, column) {
 			this.lastMove = [row, column];
 			if(this.moves.length == 0) {
 				this.moves.push({
-					move: SETTING_FIRST_WORKER,
+					move: this.SETTING_FIRST_WORKER,
 					notatedMove: getNotation(row, column),
 					build: -1,
 					row: row,
@@ -267,13 +263,13 @@ async function playPosition(row, column) {
 			}
 			if(this.playerTurn == 0) {
 				this.playerTurn = 1;
-				this.state = SETTING_FIRST_WORKER;
+				this.state = this.SETTING_FIRST_WORKER;
 			} else {
 				this.playerTurn = 0;
-				this.state = SETTING_SECOND_WORKER;
+				this.state = this.SETTING_SECOND_WORKER;
 			}
 			break;
-		case SETTING_SECOND_WORKER:
+		case this.SETTING_SECOND_WORKER:
 			if (samePosition(row, column, w1) ||
 				samePosition(row, column, w3) ||
 				samePosition(row, column, w4)) {
@@ -297,10 +293,10 @@ async function playPosition(row, column) {
 				this.playerTurn = 1;
 			} else {
 				this.playerTurn = 0;
-				this.state = CHOOSING_WORKER;
+				this.state = this.CHOOSING_WORKER;
 			}
 			break;
-		case CHOOSING_WORKER:
+		case this.CHOOSING_WORKER:
 			if(samePosition(row, column, w1)) {
 				this.selectedWorker = 0;
 			} else if (samePosition(row, column, w2)) {
@@ -314,11 +310,11 @@ async function playPosition(row, column) {
 
 			if (this.selectedWorker > -1) {
 				console.log(this.selectedWorker + " selected");
-				this.state = MOVING_WORKER;
+				this.state = this.MOVING_WORKER;
 			}
 
 			break;
-		case MOVING_WORKER:
+		case this.MOVING_WORKER:
 			console.log("Attempting move of " + this.selectedWorker);
 			// Can't move on top of a worker
 			if(samePosition(row, column, w1)) {
@@ -370,7 +366,7 @@ async function playPosition(row, column) {
 					}
 					const moveNotation = getLevelNotation(attemptedLevel) + getNotation(row, column);
 					this.moves.push({
-						move: MOVING_WORKER,
+						move: this.MOVING_WORKER,
 						notatedMove: (selectedWorker == 1 ? "M" + moveNotation : moveNotation),
 						build: -1,
 						row: row,
@@ -380,43 +376,43 @@ async function playPosition(row, column) {
 					this.lastMove = [row, column];
 
 					if(attemptedLevel == 3) {
-						this.state = WON;
+						this.state = this.WON;
 						this.winningPlayer = this.playerTurn;
 						console.log("Congrats! You win.")
 					} else {
-						this.state = BUILDING;
+						this.state = this.BUILDING;
 					}
 				}
 			}
 			break;
-		case BUILDING:
+		case this.BUILDING:
 			// Can't build on top of a worker
 			if(samePosition(row, column, w1)) {
-				break; // TODO: replace with error message
+				return false;
 			} else if (samePosition(row, column, w2)) {
-				break; // TODO: replace with error message
+				return false;
 			} else if (samePosition(row, column, w3)) {
-				break; // TODO: replace with error message
+				return false;
 			} else if (samePosition(row, column, w4)) {
-				break; // TODO: replace with error message
+				return false;
 			}
 
 			const currentLevel = this.board[4 - row][column];
 			// Can't build on top of dome
 			if(currentLevel == 4) {
-				break; // TODO: replace with error message
+				return false;
 			}
 
 			if(!withinReach(row, column, selectedW)) {
 				console.log("Must build adjacent to selected worker");
 				console.log("Worker: " + selectedW);
 				console.log("Row, column: " + row + ", " + column);
-				break; // TODO: replace with error message
+				return false;
 			} else {
 				this.board[4 - row][column] = currentLevel + 1;
 				
 				const lastMove = this.moves.pop();
-				lastMove.move = BUILDING;
+				lastMove.move = this.BUILDING;
 				lastMove.build = getBuildNotation(currentLevel + 1, row, column);
 				lastMove.row = row;
 				lastMove.column = column;
@@ -425,7 +421,7 @@ async function playPosition(row, column) {
 				this.lastBuild = [row, column];
 
 				this.playerTurn = playerTurn == 0 ? 1 : 0;
-				this.state = CHOOSING_WORKER;
+				this.state = this.CHOOSING_WORKER;
 			}
 			break;
 	}

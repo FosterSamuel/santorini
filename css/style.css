@@ -16,6 +16,9 @@
 	--color-boardPieceThird: #80868b;
 	--color-boardPieceDome: var(--color-main);
 
+	--color-playerOneWorker: #00b2f6;
+	--color-playerTwoWorker: #c99d79;
+
 	--color-text: hsl(236, 52%, 31%);
 
 	--s1: 1rem;
@@ -240,6 +243,28 @@ h1 a {
 	fill: var(--color-boardPieceDome);
 }
 
+.board-letter {
+	pointer-events: none;
+	font-size: .75rem;
+	transform: translateY(-5px);
+	fill: hsla(0, 0%, 0%, 0.3);
+}
+
+.board-number {
+	pointer-events: none;
+	font-size: .75rem;
+	fill: hsla(0, 0%, 0%, 0.3);
+	transform: translateY(-10px);
+}
+
+.board-worker {
+	fill: var(--color-playerOneWorker);
+}
+
+.board-worker-other {
+	fill: var(--color-playerTwoWorker);	
+}
+
 .highlightedMove {
 	fill: var(--color-highlightMove);
 	position: relative;
@@ -293,6 +318,11 @@ footer {
 	h1 a {
 		display: inline-block;
 		padding: 0 1rem;
+	}
+
+	.board-letter, .board-number {
+		transform: none;
+		font-size: .9rem;
 	}
 
 	footer {

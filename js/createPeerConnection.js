@@ -5,14 +5,13 @@ function createPeerConnection({
   iceServers = [],
   onChannelOpen,
   onMessageReceived,
-  onConnectionStateChange
 }) {
   const peerConnection = new RTCPeerConnection({ iceServers });
   let channelInstance;
 
-  peerConnection.oniceconnectionstatechange = (event) => {
-    onConnectionStateChange(event);
-  };
+  // peerConnection.oniceconnectionstatechange = (event) => {
+  //   onConnectionStateChange(event);
+  // };
 
   function setupChannelAsAHost() {
     try {

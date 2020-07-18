@@ -23,15 +23,6 @@ const iceServers = [
       },
     ];
 
-function clickedBoard(cellNumber) {
-	const notation = getNotation(x, y);
-	alert("Row: " + x + ", Col: " + y + " (" + getNotation(x, y) + ")");
-}
-
-function getNotationWithPiece(piece, row, column) {
-	return piece + "" + getNotation(row, column);
-} 
-
 function currentURLWithParam() {
   return window.location + "?join=";
 }
@@ -79,9 +70,7 @@ var app = new Vue({
       width: 100,
       height: 100,
       cellSize: 19.5,
-      gutter: .5,
-      playerOneColor: "#00b2f6",
-      playerTwoColor: "#c99d79"
+      gutter: .5
     },
     gameWon: -1,
     game: startGame(),
@@ -102,20 +91,18 @@ var app = new Vue({
       window.location.reload(); 
     },
     createGame: async function () {
+      const v = this;
       const onChannelOpen = () => { 
         this.sendMessage("Start!");
         this.conn.setup = true;
+
         setTimeout(() => {
-          this.drawBoard();
+          v.drawBoard();
         }, 500);
       };
       const onMessageReceived = (message) => this.handleIncomingMessage(message);
-      const onConnectionStateChange = (event) => {
-        this.conn.state = event.target.connectionState;
-        console.log(event);
-      };
-      
-      const { localDescription, setAnswerDescription, sendMessage } = await createPeerConnection({ iceServers, onMessageReceived, onChannelOpen, onConnectionStateChange });
+
+      const { localDescription, setAnswerDescription, sendMessage } = await createPeerConnection({ iceServers, onChannelOpen, onMessageReceived });
 
       this.conn.host = true;
       this.setAnswerDescription = setAnswerDescription;
@@ -124,22 +111,18 @@ var app = new Vue({
     },
     copyGameOffer: function () {
       navigator.clipboard.writeText(this.conn.offer);
-      this.conn.offerCopied = "(Copied!)";
+      this.conn.offerCopied = "(Copied)";
     },
     copyAnswerDescription: function () {
       navigator.clipboard.writeText(this.conn.answerDescription);
-      this.conn.offerCopied = "(Copied!)";
+      this.conn.offerCopied = "(Copied)";
     },
     joinGame: async function() {
-      const remoteDescription = atob(this.conn.remoteDescription);
-      const onChannelOpen = () => console.log(`Connection ready!`);
+      const onChannelOpen = () => console.log('Connection ready!');
       const onMessageReceived = (message) => this.handleIncomingMessage(message);
-      const onConnectionStateChange = (event) => {
-        this.conn.state = event.target.connectionState;
-        console.log(event);
-      };
-      
-      let { localDescription, sendMessage } = await createPeerConnection({ remoteDescription, iceServers, onMessageReceived, onChannelOpen, onConnectionStateChange });
+       
+      const remoteDescription = atob(this.conn.remoteDescription);
+      let { localDescription, sendMessage } = await createPeerConnection({ remoteDescription, iceServers, onChannelOpen, onMessageReceived });
 
       this.conn.answerDescription = btoa(localDescription);
       this.sendMessage = sendMessage;
@@ -164,7 +147,7 @@ var app = new Vue({
           setTimeout(() => {
             v.drawBoard();
           }, 500);
-        } else if (v.gameWon == -1){
+        } else if (v.gameWon == -1) {
           const myTurnNum = v.conn.host ? 0 : 1;
           const isMyTurn = (v.game.playerTurn == myTurnNum);
 
@@ -172,176 +155,109 @@ var app = new Vue({
             console.log("Receiving move . . .", msg);
             v.playMove({row: parseInt(msg[0]), column: parseInt(msg[2])});
           }
-        } else {
-          v.restartGame();
         }
       }
     },
     drawBoard: function() {
       const v = this;
-      const playMove = this.playMove;
 
-      this.draw = SVG().addTo('#board');
-      this.draw.size(this.boardSettings.width + "%", this.boardSettings.height + "%");
-      this.draw.rect(this.boardSettings.width + "%", this.boardSettings.height + "%").attr({ class:"board-field" });
+      v.draw = SVG().addTo('#board');
 
-      for(var i = 0; i < 5; i++) {
-        for(var j = 0; j < 5; j++) {
-          const x = j;
-          const y = (4 - i); 
+      // Draw board area
+      v.draw.size(this.boardSettings.width + "%", this.boardSettings.height + "%");
+      v.draw.rect(this.boardSettings.width + "%", this.boardSettings.height + "%").attr({ class:"board-field" });
 
-          var rect = this.draw.rect("19.5%")
+      // Draw board cells and highlights
+      for(var y = 4; y >= 0; y--) {
+        for(var x = 0; x < 5; x++) {
+          const cell = this.draw.rect("19.5%")
                               .attr({ class: "board-cell" });
-          
-          //rect.move(.move(this.boardSettings.cellWidth*x + this.boardSettings.verticalGutter*x, 
-            //                        this.boardSettings.cellHeight*y + this.boardSettings.horizontalGutter*y)
-          var circle = this.draw.circle("3%")
-                                .attr({ class: "board-highlight" });
-          circle.center("10%", "10%");
-          var group = this.draw.nested().add(rect).add(circle)
-          group.move(20 * x + "%", 20 * y + "%");
+          const highlight = this.draw.circle("3%").attr({ class: "board-highlight" });
+          highlight.center("10%", "10%");
 
-          this.board[y][x] = rect;
-          this.boardHighlights[y][x] = circle;
-          rect.click(function() {
+          const group = this.draw.nested().add(cell).add(highlight);
+          group.dmove(20 * x + "%", 20 * y + "%");
+
+
+          if(y == 4) {
+            let columnLetter = this.draw.text(['a', 'b', 'c', 'd', 'e'][x]);
+            columnLetter.attr({class: "board-letter"});
+
+            // Although odd to nest the single element, we cannot move it
+            // using percentages without nesting.
+            const letterGroup = this.draw.nested().add(columnLetter);
+            letterGroup.dmove((20 * x + 2) + "%", "91%");
+          }
+
+          if(x == 4) {
+            let rowNumber = this.draw.text(['5', '4', '3', '2', '1'][y]).attr({class: "board-number"});
+
+            const numberGroup = this.draw.nested().add(rowNumber);
+            numberGroup.dmove("96%", 20 * y + "%");
+          }
+
+          this.board[y][x] = cell;
+          this.boardHighlights[y][x] = highlight;
+
+          const row = 4 - y;
+          const column = x;
+          cell.click(function() {
             const myTurnNum = v.conn.host ? 0 : 1;
             const isMyTurn = (v.game.playerTurn == myTurnNum);
 
             if(isMyTurn) {
-              playMove({row:(4 - y) , column:x });
+              v.playMove({row: row, column: column });
             }
           });
         }
       }
     },
-    drawWorkers: function() {
-      this.renderWorkerIfMoved(this.p1.firstWorker, this.game.workerOne, this.boardSettings.playerOneColor);
-      this.renderWorkerIfMoved(this.p1.secondWorker, this.game.workerTwo, this.boardSettings.playerOneColor);
-      this.renderWorkerIfMoved(this.p2.firstWorker, this.game.workerThree, this.boardSettings.playerTwoColor);
-      this.renderWorkerIfMoved(this.p2.secondWorker, this.game.workerFour, this.boardSettings.playerTwoColor);
-    },
-    drawBoardPiece: function(row, column) {
-      const level = this.game.board[4 - row][column];
+    drawBuilding: function(row, column) {
+      const currentLevelAtPosition = this.game.board[4 - row][column];
+      const buildingSize = ["15%", "13%", "10%", "8%"][currentLevelAtPosition - 1];
+
       let building;
-
-      if(level != DOME) {
-        building = this.draw.rect(this.boardSettings.cellSize - 5, this.boardSettings.cellSize - 5);
-      }
-
-      let boardClass = "board-piece-";
-
-      if(level == FIRST_LEVEL) {
-        building.size("15%","15%");     
-        boardClass += "1";
-      } else if (level == SECOND_LEVEL) {
-        building.size("13%","13%");
-        boardClass += "2";
-      } else if (level == THIRD_LEVEL) {
-        building.size("10%","10%");
-        boardClass += "3";
-      } else if (level == DOME) {
+      if(currentLevelAtPosition == this.game.DOME) {
         building = this.draw.circle(this.boardSettings.cellSize - 5);
-        building.size("8%");
-        boardClass += "4";
+        building.size(buildingSize);
+      } else {
+        building = this.draw.rect(this.boardSettings.cellSize - 5, this.boardSettings.cellSize - 5);
+        building.size(buildingSize, buildingSize);
       }
 
-
-      building.attr({ class: "board-piece " + boardClass });
-
-      this.moveSVGToBoardPosition(building, row, column);
-      if(level == DOME) {
-        this.centerSVGToBoardPosition(building, row, column);
-      }
+      building.attr({ class: "board-piece board-piece-" + currentLevelAtPosition });
+      this.moveToBoardPosition(building, row, column);
     },
-    renderWorkerIfMoved: function(worker, gameWorker, color) {
-      if(worker.svg) worker.svg.front();
+    drawWorkers: function() {
+      this.drawWorkerIfMoved(this.p1.firstWorker, this.game.workerOne, false);
+      this.drawWorkerIfMoved(this.p1.secondWorker, this.game.workerTwo, false);
+
+      this.drawWorkerIfMoved(this.p2.firstWorker, this.game.workerThree, true);
+      this.drawWorkerIfMoved(this.p2.secondWorker, this.game.workerFour, true);
+    },
+    drawWorkerIfMoved: function(worker, gameWorker, isSecondPlayer) {
       if(worker.position[0] != gameWorker[0] || worker.position[1] != gameWorker[1]) {
         worker.position[0] = gameWorker[0];
         worker.position[1] = gameWorker[1];
 
         if(worker.svg === null ) {
           worker.svg = this.draw.circle("10%");
-          worker.svg.fill(color);
+          worker.svg.attr({class: (isSecondPlayer ? "board-worker-other" : "board-worker")});
         }
 
-        this.centerSVGToBoardPosition(worker.svg, worker.position[0], worker.position[1]);
+        this.moveToBoardPosition(worker.svg, worker.position[0], worker.position[1]);
+        worker.svg.front();
       }
     },
-    moveSVGToBoardPosition: function(svg, row, column) {
-      const width = parseInt(svg.attr("width"));
-      const height = parseInt(svg.attr("height"));
-      svg.x((column*this.boardSettings.cellSize + column*this.boardSettings.gutter + this.boardSettings.cellSize/2 - width/2) + "%")
+    moveToBoardPosition: function(svg, row, column) {
+      if(svg.type.localeCompare("rect") == 0) {
+        const width = parseInt(svg.attr("width"));
+        const height = parseInt(svg.attr("height"));
+        svg.x((column*this.boardSettings.cellSize + column*this.boardSettings.gutter + this.boardSettings.cellSize/2 - width/2) + "%")
          .y(((4-row)*this.boardSettings.cellSize + (4-row)*this.boardSettings.gutter + this.boardSettings.cellSize/2 - height/2) + "%");
-    },
-    centerSVGToBoardPosition: function(svg, row, column) {
-      svg.cx((column*this.boardSettings.cellSize + column*this.boardSettings.gutter + this.boardSettings.cellSize/2) + "%")
-         .cy(((4-row)*this.boardSettings.cellSize + (4-row)*this.boardSettings.gutter + this.boardSettings.cellSize/2) + "%");
-    },
-  	playMove: function(move) {
-      const row = move.row;
-      const column = move.column;
-      const v = this;
-      const myTurnNum = v.conn.host ? 0 : 1;
-      const isMyTurn = (v.game.playerTurn == myTurnNum);
-
-      if(this.game.state == WON) {
-        this.gameWon = this.game.winningPlayer;
       } else {
-        this.game.playPosition(row, column).then(function(isLegalMove) {
-          if(isLegalMove && isMyTurn) {
-            console.log("Sending move . . .", move);
-            v.sendMessage(move.row + " " + move.column);
-          }
-          v.clearBoard();
-          if(v.game.lastBuild != null) {
-            v.drawBoardPiece(v.game.lastBuild[0], v.game.lastBuild[1]);
-            v.drawWorkers();
-            v.game.lastBuild = null;
-          }
-          if(v.game.lastMove != null) {
-            v.drawWorkers();
-            v.clearBoard();
-            v.game.lastMove = null;
-            v.game.legalMoves = [];
-          }
-
-          if(v.game.state == MOVING_WORKER) {
-            v.game.listLegalMoves();
-            v.highlightLegalMoves();
-          }
-
-          if(v.game.state == BUILDING) {
-            v.game.listLegalBuilds();
-            v.highlightLegalBuilds();
-          }
-
-          if(v.game.state == WON) {
-            v.gameWon = v.game.winningPlayer;
-          }
-        });
-      }
-
-      /*
-  		const workerOne = this.workerOne;
-
-  		workerOne[0] = row;
-  		workerOne[1] = column;
-
-
-  		let boardPlace = this.board[4 - row][column];
-  		if(boardPlace == 3) {
-  			alert("You win!");
-  		}
-
-  		this.moves.push({ move: getNotation(row, column), build: -1});
-  	  */
-    },
-    clearBoard: function() {
-      for(let row = 0; row < 5; row++) {
-        for(let column = 0; column < 5; column++) {
-          this.board[row][column].attr({class:"board-cell"});
-          this.boardHighlights[row][column].attr({class:"hidden board-highlight"});
-        }
+        svg.cx((column*this.boardSettings.cellSize + column*this.boardSettings.gutter + this.boardSettings.cellSize/2) + "%")
+         .cy(((4-row)*this.boardSettings.cellSize + (4-row)*this.boardSettings.gutter + this.boardSettings.cellSize/2) + "%");
       }
     },
     highlightLegalMoves: function() {
@@ -363,6 +279,74 @@ var app = new Vue({
       }
 
       this.game.legalBuilds = [];
+    },
+    removeBoardHighlights: function() {
+      for(let row = 0; row < 5; row++) {
+        for(let column = 0; column < 5; column++) {
+          this.board[row][column].attr({class:"board-cell"});
+          this.boardHighlights[row][column].attr({class:"hidden board-highlight"});
+        }
+      }
+    },
+  	playMove: function(move) {
+      const row = move.row;
+      const column = move.column;
+      const v = this;
+      const myTurnNum = v.conn.host ? 0 : 1;
+      const isMyTurn = (v.game.playerTurn == myTurnNum);
+
+      if(this.game.state == v.game.WON) {
+        this.gameWon = this.game.winningPlayer;
+      } else {
+        this.game.playPosition(row, column).then(function(isLegalMove) {
+          if(isLegalMove && isMyTurn) {
+            console.log("Sending move . . .", move);
+            v.sendMessage(move.row + " " + move.column);
+          }
+          v.removeBoardHighlights();
+
+          if(v.game.lastBuild != null) {
+            v.drawBuilding(v.game.lastBuild[0], v.game.lastBuild[1]);
+            v.drawWorkers();
+            v.game.lastBuild = null;
+          }
+          if(v.game.lastMove != null) {
+            v.drawWorkers();
+            v.game.lastMove = null;
+            v.game.legalMoves = [];
+          }
+
+          if(v.game.state == v.game.MOVING_WORKER) {
+            v.game.listLegalMoves();
+            v.highlightLegalMoves();
+          }
+
+          if(v.game.state == v.game.BUILDING) {
+            v.game.listLegalBuilds();
+            v.highlightLegalBuilds();
+          }
+
+          if(v.game.state == v.game.WON) {
+            v.gameWon = v.game.winningPlayer;
+          }
+
+        });
+      }
+
+      /*
+  		const workerOne = this.workerOne;
+
+  		workerOne[0] = row;
+  		workerOne[1] = column;
+
+
+  		let boardPlace = this.board[4 - row][column];
+  		if(boardPlace == 3) {
+  			alert("You win!");
+  		}
+
+  		this.moves.push({ move: getNotation(row, column), build: -1});
+  	  */
     },
     getNotation: function(row, column) {
       return getNotation(row, column);
