@@ -1,27 +1,9 @@
 const container = document.getElementById("board");
 const iceServers = [
       {
-        urls: 'stun:stun.l.google.com:19302',
-      },
-      {
-        urls: 'stun:stun.2.google.com:19302',
-      },
-      {
-        urls: 'stun:stun.3.google.com:19302',
-      },
-      {
-        urls: 'stun:stun.4.google.com:19302',
-      },
-      {
-        urls: 'stun:stun.voiparound.com',
-      },
-      {
-        urls: 'stun:stun.ideasip.com',
-      },
-      {
-        urls: 'stun:stun.iptel.org',
-      },
-    ];
+        urls: ['stun:stun.l.google.com:19302', 'stun:stun2.l.google.com:19302',]
+      }
+];
 
 function currentURLWithParam() {
   return window.location + "?join=";
@@ -168,7 +150,7 @@ var app = new Vue({
       v.draw.rect(this.boardSettings.width + "%", this.boardSettings.height + "%").attr({ class:"board-field" });
 
       // Draw board cells and highlights
-      for(var y = 4; y >= 0; y--) {
+      for(var y = 0; y < 5; y++) {
         for(var x = 0; x < 5; x++) {
           const cell = this.draw.rect("19.5%")
                               .attr({ class: "board-cell" });
@@ -199,11 +181,13 @@ var app = new Vue({
           this.board[y][x] = cell;
           this.boardHighlights[y][x] = highlight;
 
-          const row = 4 - y;
+          const row = y;
           const column = x;
           cell.click(function() {
             const myTurnNum = v.conn.host ? 0 : 1;
             const isMyTurn = (v.game.playerTurn == myTurnNum);
+
+            console.log("Clicked cell");
 
             if(isMyTurn) {
               v.playMove({row: row, column: column });
@@ -213,7 +197,7 @@ var app = new Vue({
       }
     },
     drawBuilding: function(row, column) {
-      const currentLevelAtPosition = this.game.board[4 - row][column];
+      const currentLevelAtPosition = this.game.board[row][column];
       const buildingSize = ["15%", "13%", "10%", "8%"][currentLevelAtPosition - 1];
 
       let building;
@@ -229,11 +213,11 @@ var app = new Vue({
       this.moveToBoardPosition(building, row, column);
     },
     drawWorkers: function() {
-      this.drawWorkerIfMoved(this.p1.firstWorker, this.game.workerOne, false);
-      this.drawWorkerIfMoved(this.p1.secondWorker, this.game.workerTwo, false);
+      this.drawWorkerIfMoved(this.p1.firstWorker, this.game.playerOneFirstWorker, false);
+      this.drawWorkerIfMoved(this.p1.secondWorker, this.game.playerOneSecondWorker, false);
 
-      this.drawWorkerIfMoved(this.p2.firstWorker, this.game.workerThree, true);
-      this.drawWorkerIfMoved(this.p2.secondWorker, this.game.workerFour, true);
+      this.drawWorkerIfMoved(this.p2.firstWorker, this.game.playerTwoFirstWorker, true);
+      this.drawWorkerIfMoved(this.p2.secondWorker, this.game.playerTwoSecondWorker, true);
     },
     drawWorkerIfMoved: function(worker, gameWorker, isSecondPlayer) {
       if(worker.position[0] != gameWorker[0] || worker.position[1] != gameWorker[1]) {
@@ -254,31 +238,31 @@ var app = new Vue({
         const width = parseInt(svg.attr("width"));
         const height = parseInt(svg.attr("height"));
         svg.x((column*this.boardSettings.cellSize + column*this.boardSettings.gutter + this.boardSettings.cellSize/2 - width/2) + "%")
-         .y(((4-row)*this.boardSettings.cellSize + (4-row)*this.boardSettings.gutter + this.boardSettings.cellSize/2 - height/2) + "%");
+         .y(((row)*this.boardSettings.cellSize + (row)*this.boardSettings.gutter + this.boardSettings.cellSize/2 - height/2) + "%");
       } else {
         svg.cx((column*this.boardSettings.cellSize + column*this.boardSettings.gutter + this.boardSettings.cellSize/2) + "%")
-         .cy(((4-row)*this.boardSettings.cellSize + (4-row)*this.boardSettings.gutter + this.boardSettings.cellSize/2) + "%");
+         .cy(((row)*this.boardSettings.cellSize + (row)*this.boardSettings.gutter + this.boardSettings.cellSize/2) + "%");
       }
     },
     highlightLegalMoves: function() {
-      for(const positionPair of this.game.legalMoves) {
-        this.board[4 - positionPair[0]][positionPair[1]]
+      for(const positionPair of this.game.legalMovesForNextTurn) {
+        this.board[positionPair[0]][positionPair[1]]
            .attr({class: "board-cell highlightedMove"});
-        this.boardHighlights[4 - positionPair[0]][positionPair[1]]
+        this.boardHighlights[positionPair[0]][positionPair[1]]
            .attr({ class: "board-highlight" });
       }
 
-      this.game.legalMoves = [];
+      this.game.legalMovesForNextTurn = [];
     },
     highlightLegalBuilds: function() {
-      for(const positionPair of this.game.legalBuilds) {
-        this.board[4 - positionPair[0]][positionPair[1]]
+      for(const positionPair of this.game.legalBuildsForNextTurn) {
+        this.board[positionPair[0]][positionPair[1]]
            .attr({class: "board-cell highlightedBuild"});
-        this.boardHighlights[4 - positionPair[0]][positionPair[1]]
+        this.boardHighlights[positionPair[0]][positionPair[1]]
            .attr({ class: "board-highlight" });
       }
 
-      this.game.legalBuilds = [];
+      this.game.legalBuildsForNextTurn = [];
     },
     removeBoardHighlights: function() {
       for(let row = 0; row < 5; row++) {
@@ -298,6 +282,7 @@ var app = new Vue({
       if(this.game.state == v.game.WON) {
         this.gameWon = this.game.winningPlayer;
       } else {
+        console.log("Playing position...");
         this.game.playPosition(row, column).then(function(isLegalMove) {
           if(isLegalMove && isMyTurn) {
             console.log("Sending move . . .", move);
@@ -332,21 +317,6 @@ var app = new Vue({
 
         });
       }
-
-      /*
-  		const workerOne = this.workerOne;
-
-  		workerOne[0] = row;
-  		workerOne[1] = column;
-
-
-  		let boardPlace = this.board[4 - row][column];
-  		if(boardPlace == 3) {
-  			alert("You win!");
-  		}
-
-  		this.moves.push({ move: getNotation(row, column), build: -1});
-  	  */
     },
     getNotation: function(row, column) {
       return getNotation(row, column);
