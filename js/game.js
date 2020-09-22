@@ -252,12 +252,6 @@ function startGame() {
 			otherPlayerSecondWorker = this.playerOneSecondWorker;
 		}
 
-		console.log("Current first: ", currentPlayerFirstWorker);
-
-		console.log("Current second: ", currentPlayerSecondWorker);
-		console.log("Other first: ", otherPlayerFirstWorker);
-		console.log("Other second: ", otherPlayerSecondWorker);
-
 		const selectedWorker = this.selectedWorker;
 		const selectedW = this.selectedWorker == 0 ? currentPlayerFirstWorker : currentPlayerSecondWorker;
 	
