@@ -1,6 +1,6 @@
 # santorini
 
-A WebRTC-based version of the board game with the same name. Instead of a signalling server, invitation/response codes are generated to start the game. [Play now](https://fostersamuel.github.io/santorini)
+A WebRTC-based version of the board game with the same name created by [Gordon Hamilton](https://mathpickle.com/games/). Instead of a signalling server, invitation/response codes are generated to start the game. [Play now](https://fostersamuel.github.io/santorini)
 
 ## Game logic
 
