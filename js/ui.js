@@ -57,7 +57,8 @@ var app = new Vue({
     gameWon: -1,
     game: startGame(),
     setAnswerDescription: null,
-    sendMessage: null
+    sendMessage: null,
+    isLocalGame: false,
   },
   created: function () {
     const parsedUrl = new URL(window.location.href);
@@ -90,6 +91,19 @@ var app = new Vue({
       this.setAnswerDescription = setAnswerDescription;
       this.sendMessage = sendMessage;
       this.conn.offer = currentURLWithParam() + btoa(localDescription);
+    },
+    createLocalGame: async function () {
+      this.conn.host = true;
+      this.conn.setup = true;
+      this.youWantReplay = true;
+      this.theyWantReplay = true;
+      this.isLocalGame = true;
+      this.sendMessage = (message) => undefined;
+
+      const v = this;
+      setTimeout(() => {
+        v.drawBoard();
+      }, 500);
     },
     copyGameOffer: function () {
       navigator.clipboard.writeText(this.conn.offer);
@@ -183,11 +197,12 @@ var app = new Vue({
 
           const row = y;
           const column = x;
+
+          const checkTurn = v.isLocalGame ? () => true : (myTurnNum) => v.game.playerTurn == myTurnNum;
+
           cell.click(function() {
             const myTurnNum = v.conn.host ? 0 : 1;
-            const isMyTurn = (v.game.playerTurn == myTurnNum);
-
-            console.log("Clicked cell");
+            const isMyTurn = checkTurn(myTurnNum);
 
             if(isMyTurn) {
               v.playMove({row: row, column: column });

@@ -15,8 +15,8 @@
 		<section class="game-setup" v-if="!conn.setup">
 			<section class="game-hostOrClient" v-if="!conn.offer && !conn.answerDescription">
 				<button class="game-create" v-if="" v-on:click="createGame()">Create game</button>
-			</section>	
-			
+				<button class="game-create" v-on:click="createLocalGame()">Start local game</button>
+			</section>
 			<section class="game-offer" v-if="conn.offer">
 				<p>Send invitation link:</p>
 				<input name="offer" class="game-invitationLink" readonly="true" :value="conn.offer">
