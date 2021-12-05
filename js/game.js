@@ -297,15 +297,7 @@ function startGame() {
 					this.moves.push(lastMove);
 				}
 
-				if(this.playerTurn == PLAYER_ONE) {
-					// Let the second player set their first worker
-					this.playerTurn = PLAYER_TWO;
-					this.state = this.SETTING_FIRST_WORKER;
-				} else {
-					// Afterwards, move to setting second workers
-					this.playerTurn = PLAYER_ONE;
-					this.state = this.SETTING_SECOND_WORKER;
-				}
+				this.state = this.SETTING_SECOND_WORKER;
 				break;
 			case this.SETTING_SECOND_WORKER:
 				if (isSamePosition(row, column, currentPlayerFirstWorker) ||
@@ -332,10 +324,11 @@ function startGame() {
 				this.lastMove = [row, column];
 	
 				if(this.playerTurn == PLAYER_ONE) {
-					// Let the second player set their second worker
+					// Let the second player set their workers
 					this.playerTurn = PLAYER_TWO;
+					this.state = this.SETTING_FIRST_WORKER;
 				} else {
-					// Afterwards, let the first player pick the worker for their turn
+					// Otherwise, move forward to first move of game
 					this.playerTurn = PLAYER_ONE;
 					this.state = this.CHOOSING_WORKER;
 				}
@@ -504,7 +497,7 @@ function startGame() {
 				}
 				break;
 		}
-	
+
 		return true;
 	}
 
